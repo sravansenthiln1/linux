@@ -191,7 +191,6 @@
 	hdmi-connector {
 		compatible = "hdmi-connector";
 		type = "a";
-		status = "disabled";
 
 		port {
 			hdmi_connector_in: endpoint {
