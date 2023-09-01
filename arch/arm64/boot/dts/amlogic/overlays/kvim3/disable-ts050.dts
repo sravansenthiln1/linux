@@ -2,11 +2,7 @@
 /plugin/;
 
 / {
-    fragment@0 {
-        target = 
-    }
-
-	fragment@1 {
+	fragment@0 {
         target = <&hdmi_tx>;
 
         __overlay__ {
@@ -14,7 +10,7 @@
         };
     };
 
-    fragment@2 {
+    fragment@1 {
         target = <&mipi_dsi>;
 
         __overlay__ {
@@ -22,7 +18,7 @@
         };
     };
 
-    fragment@3 {
+    fragment@2 {
         target = <&mipi_analog_dphy>;
     
         __overlay__ {
@@ -30,7 +26,7 @@
         };
     };
 
-    fragment@4 {
+    fragment@3 {
         target = <&mipi_dphy>; 
 
         __overlay__ {
