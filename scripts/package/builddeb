@@ -259,8 +259,10 @@ set -e
 
 # Pass maintainer script parameters to hook scripts
 export DEB_MAINT_PARAMS="\$*"
+
 # Tell initramfs builder whether it's wanted
 export INITRD=$(if_enabled_echo CONFIG_BLK_DEV_INITRD Yes No)
+
 test -d $debhookdir/$script.d && run-parts --arg="$version" --arg="/$installed_image_path" $debhookdir/$script.d
 exit 0
 EOF
@@ -284,8 +286,10 @@ sed -e "s/exit 0//g" -i $tmpdir/DEBIAN/preinst
 cat >> $tmpdir/DEBIAN/preinst <<EOT
 # exit if we are running chroot
 if [ "\$(stat -c %d:%i /)" != "\$(stat -c %d:%i /proc/1/root/.)" ]; then exit 0; fi
+
 check_and_unmount (){
  	boot_device=\$(mountpoint -d /boot)
+
 	for file in /dev/* ; do
 		CURRENT_DEVICE=\$(printf "%d:%d" \$(stat --printf="0x%t 0x%T" \$file))
  		if [[ "\$CURRENT_DEVICE" = "\$boot_device" ]]; then
@@ -298,6 +302,10 @@ check_and_unmount (){
 		# we have to keep it mounted! umount /boot
  		rm -f /boot/System.map* /boot/config* /boot/vmlinuz* /boot/$image_name /boot/uImage
 	fi
+}
+mountpoint -q /boot && check_and_unmount
+EOT
+echo "exit 0" >> $tmpdir/DEBIAN/preinst
 
 create_package "$packagename" "$tmpdir"
 
@@ -310,8 +318,7 @@ create_package "$packagename" "$tmpdir"
 if is_enabled CONFIG_STACK_VALIDATION; then
 	(cd $objtree; find tools/objtool -type f -executable) >> "$objtree/debian/hdrobjfiles"
 fi
-
-(cd $objtree; find arch/$SRCARCH/include Module.symvers include scripts -type f) >> "$objtree/debian/hdrobjfiles"
+	(cd $objtree; find arch/$SRCARCH/include Module.symvers include scripts -type f) >> "$objtree/debian/hdrobjfiles"
 if is_enabled CONFIG_GCC_PLUGINS; then
 	(cd $objtree; find scripts/gcc-plugins -name \*.so -o -name gcc-common.h) >> "$objtree/debian/hdrobjfiles"
 fi
