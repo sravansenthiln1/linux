@@ -158,7 +158,6 @@ install_linux_image_dbg () {
 
 install_kernel_headers () {
 	pdir=$1
-	version=$2
 
 	rm -rf $pdir
 
@@ -226,7 +225,7 @@ do
 	linux-libc-dev)
 		install_libc_headers debian/linux-libc-dev;;
 	linux-headers-*)
-		install_kernel_headers debian/linux-headers ${package#linux-headers-};;
+		install_kernel_headers debian/linux-headers;;
 	esac
 done
 
