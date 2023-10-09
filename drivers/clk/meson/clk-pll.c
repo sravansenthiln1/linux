@@ -286,6 +286,8 @@ static int meson_clk_pll_wait_lock(struct clk_hw *hw)
 		udelay(20);
 	} while (--delay);
 
+	pr_warn("%s: pll %s did not lock\n", __func__, clk_hw_get_name(hw));
+
 	return -ETIMEDOUT;
 }
 
@@ -430,9 +432,9 @@ static int meson_clk_pll_set_rate(struct clk_hw *hw, unsigned long rate,
 		meson_parm_write(clk->map, &pll->frac, frac);
 	}
 
-	/* If the pll is stopped, bail out now */
+	/* If the pll is stopped, bail out now 
 	if (!enabled)
-		return 0;
+		return 0;*/
 
 	ret = meson_clk_pll_enable(hw);
 	if (ret) {
