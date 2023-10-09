@@ -13,29 +13,19 @@
 / {
 	aliases {
 		serial0 = &uart_AO;
-		serial1 = &uart_A;
-		serial2 = &uart_B;
-		serial3 = &uart_C;
-		serial4 = &uart_AO_B;
-		i2c0 = &i2c0;
-		i2c1 = &i2c1;
-		i2c2 = &i2c2;
-		i2c3 = &i2c3;
-		i2c4 = &i2c_AO;
 		ethernet0 = &ethmac;
 		rtc0 = &rtc;
 		rtc1 = &vrtc;
-		spi1 = &spicc1;
 	};
 
 	chosen {
 		stdout-path = "serial0:115200n8";
 	};
 
-//	memory@0 {
-//		device_type = "memory";
-//		reg = <0x0 0x0 0x0 0x80000000>;
-//	};
+	memory@0 {
+		device_type = "memory";
+		reg = <0x0 0x0 0x0 0x80000000>;
+	};
 
 	adc-keys {
 		compatible = "adc-keys";
@@ -48,20 +38,6 @@
 			linux,code = <KEY_FN>;
 			press-threshold-microvolt = <10000>;
 		};
-	};
-
-	gpiomem {
-		compatible = "amlogic, gpiomem";
-		reg = <0x0 0xff634000 0x0 0x1000>;
-		dev_name = "gpiomem";
-		status = "okay";
-	};
-
-	gpiomem_ao {
-		compatible = "amlogic, gpiomem";
-		reg = <0x0 0xff800000 0x0 0x1000>;
-		dev_name = "gpiomem-ao";
-		status = "okay";
 	};
 
 	leds {
@@ -191,20 +167,20 @@
 		};
 	};
 
-	spdif_dit: audio-codec-1 {
-		#sound-dai-cells = <0>;
-		compatible = "linux,spdif-dit";
-		status = "okay";
-		sound-name-prefix = "DIT";
-	};
 
 	sound {
 		compatible = "amlogic,axg-sound-card";
 		model = "KHADAS-VIM3";
-		audio-aux-devs = <&tdmout_b>;
-		audio-routing = "TDMOUT_B IN 0", "FRDDR_A OUT 1",
-				"TDM_B Playback", "TDMOUT_B OUT",
-				"SPDIFOUT IN 0", "FRDDR_A OUT 3";
+		audio-aux-devs = <&tdmin_a>, <&tdmout_a>;
+		audio-routing = "TDMOUT_A IN 0", "FRDDR_A OUT 0",
+				"TDMOUT_A IN 1", "FRDDR_B OUT 0",
+				"TDMOUT_A IN 2", "FRDDR_C OUT 0",
+				"TDM_A Playback", "TDMOUT_A OUT",
+				"TDMIN_A IN 0", "TDM_A Capture",
+				"TDMIN_A IN 3", "TDM_A Loopback",
+				"TODDR_A IN 0", "TDMIN_A OUT",
+				"TODDR_B IN 0", "TDMIN_A OUT",
+				"TODDR_C IN 0", "TDMIN_A OUT";
 
 		assigned-clocks = <&clkc CLKID_MPLL2>,
 				  <&clkc CLKID_MPLL0>,
@@ -219,9 +195,29 @@
 			sound-dai = <&frddr_a>;
 		};
 
+		dai-link-1 {
+			sound-dai = <&frddr_b>;
+		};
+
+		dai-link-2 {
+			sound-dai = <&frddr_c>;
+		};
+
+		dai-link-3 {
+			sound-dai = <&toddr_a>;
+		};
+
+		dai-link-4 {
+			sound-dai = <&toddr_b>;
+		};
+
+		dai-link-5 {
+			sound-dai = <&toddr_c>;
+		};
+
 		/* 8ch hdmi interface */
 		dai-link-6 {
-			sound-dai = <&tdmif_b>;
+			sound-dai = <&tdmif_a>;
 			dai-format = "i2s";
 			dai-tdm-slot-tx-mask-0 = <1 1>;
 			dai-tdm-slot-tx-mask-1 = <1 1>;
@@ -230,7 +226,7 @@
 			mclk-fs = <256>;
 
 			codec {
-				sound-dai = <&tohdmitx TOHDMITX_I2S_IN_B>;
+				sound-dai = <&tohdmitx TOHDMITX_I2S_IN_A>;
 			};
 		};
 
@@ -242,16 +238,6 @@
 				sound-dai = <&hdmi_tx>;
 			};
 		};
-
-		/* spdif or toslink interface */
-		dai-link-4 {
-			sound-dai = <&spdifout>;
-
-			codec-0 {
-				sound-dai = <&spdif_dit>;
-			};
-		};
-
 	};
 
 	wifi32k: wifi32k {
@@ -260,13 +246,6 @@
 		clock-frequency = <32768>;
 		pwms = <&pwm_ef 0 30518 0>; /* PWM_E at 32.768KHz */
 	};
-
-	onewire:onewire {
-		compatible = "w1-gpio";
-		gpios = <&gpio GPIOH_6 GPIO_ACTIVE_HIGH>;
-		#gpio-cells = <1>;
-		status = "disabled";
-	};
 };
 
 &arb {
@@ -274,35 +253,6 @@
 };
 
 &clkc_audio {
-	status = "okay";
-};
-
-&tdmif_b {
-	// uncomment next block  enable I2S output to GPIO HEADERS
-	//
-	assigned-clocks = <&clkc_audio AUD_CLKID_TDM_SCLK_PAD1>,
-			  <&clkc_audio AUD_CLKID_TDM_LRCLK_PAD1>;
-	assigned-clock-parents = <&clkc_audio AUD_CLKID_MST_B_SCLK>,
-				 <&clkc_audio AUD_CLKID_MST_B_LRCLK>;
-	assigned-clock-rates = <0>, <0>;
-	/*
-	pinctrl-0 = <&tdm_b_fs_pins>, <&tdm_b_dout0_pins>,
-		    <&tdm_b_sclk_pins>, <&mclk0_a_pins>;
-	*/
-	pinctrl-names = "default";
-	status = "okay";
-};
-
-&tdmout_b {
-	status = "okay";
-};
-
-&spdifout {
-	// uncomment next block  enable SPDIF output to GPIO HEADERS
-	/*
-	pinctrl-0 = <&spdif_ao_out_pins>;
-	*/
-	pinctrl-names = "default";
 	status = "okay";
 };
 
@@ -323,7 +273,7 @@
 &cpu_thermal {
 	trips {
 		cpu_active: cpu-active {
-			temperature = <50000>; /* millicelsius */
+			temperature = <80000>; /* millicelsius */
 			hysteresis = <2000>; /* millicelsius */
 			type = "active";
 		};
@@ -517,7 +467,6 @@
 	};
 };
 
-/*
 &tdmif_a {
 	status = "okay";
 };
@@ -541,26 +490,9 @@
 &toddr_c {
 	status = "okay";
 };
-*/
 
 &tohdmitx {
 	status = "okay";
-};
-
-&spicc1 {
-	status = "disabled";
-
-	pinctrl-names = "default";
-	pinctrl-0 = <&spicc1_pins>;
-	cs-gpios = <&gpio GPIOH_6 0>;
-
-	spidev@0 {
-		status = "okay";
-
-		compatible = "linux,spidev";
-		reg = <0>;
-		spi-max-frequency = <100000000>;
-	};
 };
 
 &uart_A {
